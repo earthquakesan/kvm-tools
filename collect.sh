@@ -1,11 +1,11 @@
 #!/bin/bash
 
-FILES=`ls /etc/libvirt/qemu/*.xml`
-for FILE in $FILES
+VIRSH_LOCAL="virsh --connect qemu:///system"
+HOSTS=`$VIRSH_LOCAL list --name`
+for HOST in $HOSTS
 do
-	#cat $FILE
-	NAME=`grep -oh "<name>.*</name>" $FILE | sed 's/\(<name>\|<\/name>\)//g'`
-	CURRENTMEMORY=`grep -oh "<currentMemory.*>.*</currentMemory>" $FILE | sed 's/\(<currentMemory>\|<currentMemory unit=.KiB.>\|<\/currentMemory>\)//g'`
-	#echo "$NAME"
-	echo "$CURRENTMEMORY"
+        XMLCONFIG=`$VIRSH_LOCAL dumpxml $HOST > $HOST.xml`
+        MEMORY=$(xmllint --xpath '//memory/text()' $HOST.xml)
+        echo "$HOST, $MEMORY"
+        rm $HOST.xml
 done
